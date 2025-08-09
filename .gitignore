@@ -1,0 +1,52 @@
+# ---- Houdini caches / large intermediates ----
+*.bgeo
+*.bgeo.sc
+*.vdb
+*.sim
+*.ifd
+*.usd
+*.usdc
+*.usdz
+*.abc
+*.rib
+
+houdini/**/cache/
+houdini/**/tmp/
+houdini/**/temp/
+houdini/**/autosave/
+
+# Keep .hip scene files tracked
+!*.hip
+!*.hiplc
+!*.hipnc
+
+# ---- Stable Diffusion / AI tools ----
+*.ckpt
+*.safetensors
+*.pt
+*.bin
+
+ai_tools/stable-diffusion-webui/models/
+ai_tools/stable-diffusion-webui/venv/
+ai_tools/stable-diffusion-webui/repositories/
+ai_tools/stable-diffusion-webui/cache/
+
+# Generated AI outputs (recreate on demand)
+ai_tools/generated/
+
+# ---- Python ----
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# ---- OS / Editor ----
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# Consider Git LFS for large binary assets you do wish to track (e.g., textures, renders)
+# https://git-lfs.github.com/
+
