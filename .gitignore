@@ -26,10 +26,8 @@ houdini/**/autosave/
 *.pt
 *.bin
 
-ai_tools/stable-diffusion-webui/models/
-ai_tools/stable-diffusion-webui/venv/
-ai_tools/stable-diffusion-webui/repositories/
-ai_tools/stable-diffusion-webui/cache/
+ai_tools/stable-diffusion-webui/
+ai_tools/StableHoudini/
 
 # Generated AI outputs (recreate on demand)
 ai_tools/generated/
