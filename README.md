@@ -141,7 +141,7 @@ Follow these steps to verify the setup and build the initial blockout with an AI
 1) Launch Houdini 20.5 and save a new scene
 - Open Houdini 20.5
 - File → New Scene
-- File → Save As → save to: `houdini/interstellar_ship.hip`
+- File → Save As → save to: `houdini/interstellar_ship.hipnc`
 
 2) Ensure Stable Diffusion is running
 - Start the web UI and API (see steps above) and confirm:
