@@ -74,34 +74,90 @@ def _create_spaceship_blockout(prompt_tweaks: Optional[str] = None):
         except Exception:
             pass
 
-    # Hull (tube along Z)
-    tube = _get_or_create(geo, "tube", "hull_tube")
-    tube.parm("type").set(1)  # Polygon
-    tube.parm("orient").set(2)  # Z axis
-    tube.parm("height").set(30.0)
-    tube.parm("rad1").set(2.0)
-    tube.parm("rad2").set(2.0)
-    tube.parm("cap").set(True)
+    # Main HULL (5km ~ 5000 units along Z)
+    hull_length = 5000.0
+    hull_radius = 80.0
 
-    # Engines (two spheres at tail)
-    eng_l = _get_or_create(geo, "sphere", "engine_L")
-    eng_l.parmTuple("t").set((1.8, 0.0, -15.0))
-    eng_l.parm("type").set(2)  # Polygon Mesh
-    eng_l.parm("radx").set(1.0)
-    eng_l.parm("rady").set(1.0)
-    eng_l.parm("radz").set(1.0)
+    core = _get_or_create(geo, "tube", "hull_core")
+    core.parm("type").set(1)  # Polygon
+    core.parm("orient").set(2)  # Z axis
+    core.parm("height").set(hull_length)
+    core.parm("rad1").set(hull_radius)
+    core.parm("rad2").set(hull_radius)
+    core.parm("cap").set(True)
 
-    eng_r = _get_or_create(geo, "sphere", "engine_R")
-    eng_r.parmTuple("t").set((-1.8, 0.0, -15.0))
-    eng_r.parm("type").set(2)
-    eng_r.parm("radx").set(1.0)
-    eng_r.parm("rady").set(1.0)
-    eng_r.parm("radz").set(1.0)
+    # Layered metallic shielding (slightly larger radii shells)
+    shield1 = _get_or_create(geo, "tube", "hull_shield_1")
+    for p in ("type", "orient", "height", "rad1", "rad2", "cap"):
+        shield1.parm(p).set(core.parm(p))
+    shield1.parm("rad1").set(hull_radius * 1.05)
+    shield1.parm("rad2").set(hull_radius * 1.05)
+
+    shield2 = _get_or_create(geo, "tube", "hull_shield_2")
+    for p in ("type", "orient", "height", "rad1", "rad2", "cap"):
+        shield2.parm(p).set(core.parm(p))
+    shield2.parm("rad1").set(hull_radius * 1.1)
+    shield2.parm("rad2").set(hull_radius * 1.1)
+
+    # Fusion engines (rear): nozzle cones + plasma cores near tail (negative Z)
+    tail_z = -hull_length * 0.5
+    engine_offset = 140.0
+    nozzle_length = 150.0
+    nozzle_radius = 40.0
+
+    noz_l = _get_or_create(geo, "cone", "engine_nozzle_L")
+    noz_l.parm("type").set(1)  # polygon
+    noz_l.parm("height").set(nozzle_length)
+    noz_l.parm("rad").set(nozzle_radius)
+    noz_l.parmTuple("t").set((engine_offset, 0.0, tail_z + nozzle_length * 0.5))
+    noz_l.parmTuple("r").set((90.0, 0.0, 0.0))  # aim along +Z
+
+    noz_r = _get_or_create(geo, "cone", "engine_nozzle_R")
+    noz_r.parm("type").set(1)
+    noz_r.parm("height").set(nozzle_length)
+    noz_r.parm("rad").set(nozzle_radius)
+    noz_r.parmTuple("t").set((-engine_offset, 0.0, tail_z + nozzle_length * 0.5))
+    noz_r.parmTuple("r").set((90.0, 0.0, 0.0))
+
+    plasma_l = _get_or_create(geo, "sphere", "engine_plasma_L")
+    plasma_l.parm("type").set(2)
+    plasma_l.parm("radx").set(nozzle_radius * 0.6)
+    plasma_l.parm("rady").set(nozzle_radius * 0.6)
+    plasma_l.parm("radz").set(nozzle_radius * 0.6)
+    plasma_l.parmTuple("t").set((engine_offset, 0.0, tail_z + nozzle_length))
+
+    plasma_r = _get_or_create(geo, "sphere", "engine_plasma_R")
+    plasma_r.parm("type").set(2)
+    plasma_r.parm("radx").set(nozzle_radius * 0.6)
+    plasma_r.parm("rady").set(nozzle_radius * 0.6)
+    plasma_r.parm("radz").set(nozzle_radius * 0.6)
+    plasma_r.parmTuple("t").set((-engine_offset, 0.0, tail_z + nozzle_length))
+
+    # Bussard scoops (front): intake ring + cone (positive Z)
+    nose_z = hull_length * 0.5
+    scoop_ring = _get_or_create(geo, "torus", "bussard_ring")
+    scoop_ring.parm("type").set(1)
+    scoop_ring.parm("rad1").set(hull_radius * 1.6)
+    scoop_ring.parm("rad2").set(hull_radius * 0.2)
+    scoop_ring.parmTuple("t").set((0.0, 0.0, nose_z - 50.0))
+
+    scoop_cone = _get_or_create(geo, "cone", "bussard_cone")
+    scoop_cone.parm("type").set(1)
+    scoop_cone.parm("height").set(400.0)
+    scoop_cone.parm("rad").set(hull_radius * 1.2)
+    scoop_cone.parmTuple("t").set((0.0, 0.0, nose_z - 200.0))
+    scoop_cone.parmTuple("r").set((-90.0, 0.0, 0.0))  # open toward +Z
 
     merge = _get_or_create(geo, "merge", "ship_merge")
-    merge.setInput(0, tube)
-    merge.setInput(1, eng_l)
-    merge.setInput(2, eng_r)
+    merge.setInput(0, core)
+    merge.setInput(1, shield1)
+    merge.setInput(2, shield2)
+    merge.setInput(3, noz_l)
+    merge.setInput(4, noz_r)
+    merge.setInput(5, plasma_l)
+    merge.setInput(6, plasma_r)
+    merge.setInput(7, scoop_ring)
+    merge.setInput(8, scoop_cone)
 
     polyreduce = _get_or_create(geo, "polyreduce::2.0", "opt_reduce") if hou.sopNodeTypeCategory().nodeType("polyreduce::2.0") else _get_or_create(geo, "polyreduce", "opt_reduce")
     polyreduce.setInput(0, merge)
@@ -130,8 +186,10 @@ def _create_spaceship_blockout(prompt_tweaks: Optional[str] = None):
         "geo": geo,
         "mat_sop": mat_sop,
         "uv_out": output,
-        "hull": tube,
-        "engines": (eng_l, eng_r),
+        "hull": core,
+        "engines": (noz_l, noz_r),
+        "plasma": (plasma_l, plasma_r),
+        "bussard": (scoop_ring, scoop_cone),
     }
 
 
